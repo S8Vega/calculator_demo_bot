@@ -16,6 +16,7 @@ bot.
 """
 
 import logging
+import calculadora
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -38,23 +39,17 @@ def help_command(update, context):
     update.message.reply_text('necesito ayuda!')
 
 
-def echo(update, context):
-    """Echo the user message."""
-    print(update.message.text)
-    update.message.reply_text(update.message.text)
 
-
-def sumar(update,context):
+def calcular(update,context):
     try:
-        numero1 = int(context.args[0])
-        numero2 = int(context.args[1])
-
-        suma = numero1 + numero2
-
-        update.message.reply_text("La suma es "+str(suma))
+        c = calculadora.Calculadora()
+        s = ""
+        for i in context.args:
+            s = s + i
+        update.message.reply_text(f"La respuesta es {c.evaluate(s)}")
 
     except (ValueError):
-        update.message.reply_text("por favor utilice dos numeros")
+        update.message.reply_text("por favor utilice operaciones validas")
 
 def main():
     """Start the bot."""
@@ -70,12 +65,7 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
 
-
-    dp.add_handler(CommandHandler("sumar", sumar))
-
-
-    # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    dp.add_handler(CommandHandler("calcular", calcular))
 
     # Start the Bot
     updater.start_polling()
