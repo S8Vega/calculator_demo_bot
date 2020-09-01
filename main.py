@@ -14,23 +14,31 @@ logger = logging.getLogger(__name__)
 TOKEN = os.getenv("TOKEN_TELEGRAM_CALCULATOR")
 
 def start(update, context):
-    update.message.reply_text('Hola amigos!!')
+    name = update.message.from_user.first_name
+    logger.info(f"El usuario {name} ha iniciado una conversacion")
+    update.message.reply_text(f'Hola {name}')
 
 
 def help_command(update, context):
     update.message.reply_text('necesito ayuda!')
 
-
+def valid(c):
+    return c.isdigit() or c == '+' or c == '-' or c == '*' or c == '/' 
 
 def calcular(update,context):
+    name = update.message.from_user.first_name
     try:
         s = ""
         for i in context.args:
+            for c in i:
+                if(not valid(c)):
+                    update.message.reply_text(f"{name} por favor utilice operaciones validas")
+                    return
             s = s + i
-        update.message.reply_text(f"La respuesta es {calculadora.evaluate(s)}")
+        update.message.reply_text(f"{name} la respuesta es {calculadora.evaluate(s)}")
 
     except (ValueError):
-        update.message.reply_text("por favor utilice operaciones validas")
+        update.message.reply_text(f"{name} por favor utilice operaciones validas")
 
 def main():
     updater = Updater(TOKEN, use_context=True)
