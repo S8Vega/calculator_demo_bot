@@ -1,6 +1,7 @@
 import logging
 import calculadora
 import os
+import sys
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -12,6 +13,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TOKEN_TELEGRAM_CALCULATOR")
+mode = os.getenv("MODE")
+
+if mode == "dev":
+    def run(updater):
+        updater.start_polling()
+        print("bot cargado")
+        updater.idle()
+elif mode == "prod":
+    def run(updater):
+        PORT = int(os.environ.get("PORT", "8443"))
+        HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
+        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+        updater.bot.set_webhook(f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
+else:
+    logger.info("No se especifico el MODE")
+    sys.exit()
 
 def start(update, context):
     name = update.message.from_user.first_name
@@ -61,11 +78,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CommandHandler("calcular", calcular))
-    
-    updater.start_polling()
-    
-    updater.idle()
 
+    run(updater)
 
 if __name__ == '__main__':
     main()
